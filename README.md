@@ -1,1 +1,2 @@
-"# vaccinator" 
+scan for slot avilability
+
