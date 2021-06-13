@@ -5,7 +5,7 @@
 # initialise look up loop
 # using api, search avilability every 1 minute for the specefic centere or centers
 import requests
-import json
+import time
 
 from datetime import date
 
@@ -38,15 +38,37 @@ def getAvilableCenterByDistrict(district_id,date):
     response_json =  response.json()
     #print(response_json)
     for center in response_json['centers']:
-       print(f"{center['name']}--{center['fee_type']}")
-       for session in center['sessions']:
-            if session['available_capacity_dose1'] != 0 or session['available_capacity_dose2'] != 0:
-                print(f"{session['date']} -- {session['available_capacity_dose1']} --min age:{session['min_age_limit']}")
-            else:
-                print("No Dose avilable")
+        print(f"{center['name']}--{center['fee_type']}")
+        dose_avilability = False
+        for session in center['sessions']:
+            if session['available_capacity_dose1'] != 0:
+                print(f"      {session['date']} -- {session['available_capacity_dose1']} --min age:{session['min_age_limit']}")
+                dose_avilability = True
+        if dose_avilability == False:
+            print("      Dose not avilable")
 def getTodayDate():
     today = date.today()
     return today.strftime("%d-%m-%Y")
+def playAmbulanceSound():
+    from playsound import playsound
+    playsound("ambulance.mp3")
+    
+def liveNotify(district_id,date,age):
+    while True:
+        response = requests.get(f'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id={district_id}&date={date}', headers=headers)
+        response_json =  response.json()
+        #print(response_json)
+        for center in response_json['centers']:
+            for session in center['sessions']:
+                if session['available_capacity_dose1'] != 0 and int(session['min_age_limit'])<=age:
+                    playAmbulanceSound()
+                    print(f"{center['name']}--{center['fee_type']}")
+                    print(f"      {session['date']} -- {session['available_capacity_dose1']} --min age:{session['min_age_limit']}")
+        time.sleep(60*2)
+        print("...")
+
+
+
 def main():
     getDistrictId()
     district_id = int(input("enter your District Id: "))
@@ -54,5 +76,8 @@ def main():
     #getCenterByDistrict(district_id,today)
     print("##############################################################################################################")
     getAvilableCenterByDistrict(district_id,today)
+    age = int(input("To get live notification enter your age: "))
+    print("[LIVE NOTIFY IS ACTIVE...]")
+    liveNotify(district_id, today, age)
     
 main()
