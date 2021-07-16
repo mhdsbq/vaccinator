@@ -1,19 +1,11 @@
-# search vaccination centere by district
-# display centers inside selected district
-# chose multipple centers
-# 
-# initialise look up loop
-# using api, search avilability every 1 minute for the specefic centere or centers
 import requests
 import time
-
 from datetime import date
-
 from requests.models import Response
 
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'}
 
-def getDistrictId():
+def getDistrictId(headers=headers):
     response = requests.get('https://cdn-api.co-vin.in/api/v2/admin/location/districts/17', headers=headers)
 
     if response.ok:
@@ -26,7 +18,7 @@ def getDistrictId():
         for dist in r_json["districts"]:   
             print(f"{dist['district_name']: <{max_length}} : {dist['district_id']}")    
 
-def getCenterByDistrict(district_id, date="12-06-2021"):
+def getCenterByDistrict(district_id, date="12-06-2021",headers=headers):
     response = requests.get(f'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id={district_id}&date={date}', headers=headers)
     response_json =  response.json()
     #print(response_json)
@@ -35,7 +27,7 @@ def getCenterByDistrict(district_id, date="12-06-2021"):
        for session in center['sessions']:
            print(f"{session['date']} -- {session['available_capacity_dose1']} --min age:{session['min_age_limit']}")
 
-def getAvilableCenterByDistrict(district_id,date):
+def getAvilableCenterByDistrict(district_id,date,headers=headers):
     response = requests.get(f'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id={district_id}&date={date}', headers=headers)
     response_json =  response.json()
     #print(response_json)
@@ -55,7 +47,7 @@ def playAmbulanceSound():
     from playsound import playsound
     playsound("ambulance.mp3")
     
-def liveNotify(district_id,date):
+def liveNotify(district_id,date,headers=headers):
     while True:
         response = requests.get(f'https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id={district_id}&date={date}', headers=headers)
         response_json =  response.json()
@@ -68,7 +60,7 @@ def liveNotify(district_id,date):
                     print(f"      {session['date']} -- {session['available_capacity_dose1']} --min age:{session['min_age_limit']}")
         time.sleep(60*2)
         print("...")
-def notifyByCenterName(district_id,date,center_list,age_limit):
+def notifyByCenterName(district_id,date,center_list,age_limit,headers=headers):
     print_ = True
     while True:
         def api_call():   
